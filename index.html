@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Game of Life</title>
+    <style media="screen">
+      html,body { background: #fff; margin: 0; overflow: hidden; height: 100%; }
+      #root { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
+      canvas { width: 100%; height: 100%; image-rendering: pixelated }
+    </style>
+    <script type="text/javascript">
+      const createNode = (options) => {
+        const node = document.createElement(options.tag);
+        if(options.className) node.setAttribute('class',options.className);
+        if(options.innerHTML) node.innerHTML = options.innerHTML;
+        if(options.attributes) Object.keys(options.attributes).forEach(key => node.setAttribute(key,options.attributes[key]) );
+        if(options.style) Object.keys(options.style).forEach(key => node.style[key] = options.style[key]);
+        if(options.event_listeners) Object.keys(options.event_listeners).forEach(key => node.addEventListener(key,options.event_listeners[key]) )
+        options.root.appendChild(node);
+        return node;
+      }
+      class App {
+        constructor(){
+          document.addEventListener('DOMContentLoaded',this.init.bind(this));
+          window.addEventListener('resize',this.init.bind(this));
+        }
+        init(){
+          if(this.interval) cancelAnimationFrame(this.interval);
+          // this.frame = 0;
+          const ratio = window.innerWidth / window.innerHeight;
+          this.width = 600;
+          this.height = Math.floor(window.innerHeight * 600 / window.innerWidth);
+          this.size = this.width * this.height;
+          this.root = document.getElementById('root');
+          this.root.innerHTML = ``;
+          this.canvas = createNode({ root: this.root, tag: 'canvas' });
+          this.context = this.canvas.getContext('2d');
+          this.canvas.width = this.width;
+          this.canvas.height = this.height;
+          this.pixels = new Uint8Array(this.size * 4);
+          for(let i = 0; i < this.size; i++){
+            const index = i * 4;
+            const color = Math.random() > 0.5 ? 0 : 255;
+            this.pixels[index] = color;
+            this.pixels[index+1] = color;
+            this.pixels[index+2] = color;
+            this.pixels[index+3] = 255;
+          }
+          this.interval = window.requestAnimationFrame(this.render.bind(this));
+        }
+        update(){
+          const new_pixels = new Uint8Array(this.size * 4);
+          for(let i = 0; i < this.size; i++){
+            const index = i * 4;
+            const width_offset = this.width * 4;
+            const matrix = [
+              index - 4, // left
+              index - width_offset - 4, // top left
+              index - width_offset, // top
+              index - width_offset + 4, // top right
+              index + 4, // right
+              index + width_offset + 4, // bottom right
+              index + width_offset, // bottom
+              index + width_offset - 4, // bottom left
+            ];
+            let neighbors = 0;
+            for(const entry of matrix) neighbors = this.pixels[entry] === 255 ? neighbors + 1 : neighbors;
+            if(this.pixels[index] === 0 && neighbors === 3){
+              new_pixels[index] = 255;
+              new_pixels[index+1] = 255;
+              new_pixels[index+2] = 255;
+              new_pixels[index+3] = 255;
+            } else if(this.pixels[index] === 255 && (neighbors < 2 || neighbors > 3) ) {
+              new_pixels[index] = 0;
+              new_pixels[index+1] = 0;
+              new_pixels[index+2] = 0;
+              new_pixels[index+3] = 255;
+            } else {
+              new_pixels[index] = this.pixels[index];
+              new_pixels[index+1] = this.pixels[index+1];
+              new_pixels[index+2] = this.pixels[index+2];
+              new_pixels[index+3] = this.pixels[index+3];
+            }
+            if(i === this.size - 1) this.pixels = new_pixels;
+          }
+        }
+        draw(){
+          const pixels_uac = new Uint8ClampedArray(this.pixels,this.width,this.height);
+          const pixel_data = new ImageData(pixels_uac,this.width,this.height)
+          this.context.putImageData(pixel_data,0,0);
+        }
+        async render(){
+          // this.frame++
+          // if(this.frame % 30 === 0){ // optional framerate throttle
+            await this.update();
+            await this.draw();
+            this.context.restore();
+          // }
+          this.interval = window.requestAnimationFrame(this.render.bind(this));
+        }
+      }
+      const app = new App();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
