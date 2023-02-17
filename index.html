@@ -23,7 +23,7 @@
           if(this.frame_timeout) clearTimeout(this.frame_timeout);
           // if(this.interval) cancelAnimationFrame(this.interval);
           const ratio = window.innerHeight / window.innerWidth;
-          this.width = window.innerWidth > 900 ? 300 : window.innerWidth > 500 ? 200 : 100;
+          this.width = window.innerWidth > 900 ? 400 : window.innerWidth > 500 ? 300 : 200;
           this.height = Math.floor(this.width * ratio);
           this.size = this.width * this.height;
           this.root = document.getElementById('root');
@@ -38,7 +38,7 @@
             const color = Math.random() > 0.5 ? 0 : 255;
             for(let z = 0; z < 4; z++) this.pixels[index + z] = z === 3 ? 255 : color;
           }
-          this.frame_timeout = setTimeout(this.render.bind(this),12);
+          this.frame_timeout = setTimeout(this.render.bind(this),6);
           // this.interval = window.requestAnimationFrame(this.render.bind(this));
         }
         update(){
@@ -64,7 +64,7 @@
           const pixels_uac = new Uint8ClampedArray(this.pixels,this.width,this.height);
           const pixel_data = new ImageData(pixels_uac,this.width,this.height)
           this.context.putImageData(pixel_data,0,0);
-          this.frame_timeout = setTimeout(this.render.bind(this),12);
+          this.frame_timeout = setTimeout(this.render.bind(this),6);
           // this.interval = window.requestAnimationFrame(this.render.bind(this));
         }
       }
